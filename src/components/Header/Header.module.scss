@@ -1,0 +1,44 @@
+.main {
+  width: 100vw;
+  height: 80px;
+  background-color: #fff;
+  margin-bottom: 26px;
+}
+
+.container {
+  display: flex;
+  padding: 16px 22px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-family: Inter, sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 50px;
+}
+
+.buttons {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.img {
+  width: 50px;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  cursor: pointer;
+}
+
+.imgg {
+  height: 46px;
+  width: 46px;
+  background-color: black;
+  border-radius: 100%;
+}

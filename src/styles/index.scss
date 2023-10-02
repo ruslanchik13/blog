@@ -1,0 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap');
+@import "./reset";
+
+
+body {
+  width: 100%;
+  background-image: url("https://steamuserimages-a.akamaihd.net/ugc/2055375832776827876/22C3E0538F01E22E35EC109A0FE7D94885FF9D68/");
+  background-size: cover;
+  display: flex;
+  justify-content: center;
+}
+
+a {
+  text-decoration: none;
+  color: black;
+}
