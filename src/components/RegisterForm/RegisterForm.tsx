@@ -1,73 +1,66 @@
 import { Button, Checkbox } from 'antd';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { CheckboxChangeEvent } from 'antd/es/checkbox';
 import classes from './RegisterForm.module.scss';
-import Input from '../../shared/Input/Input';
-import useRegister from '../../hooks/useRegister';
+import Inputs from './components/Inputs/Inputs';
+import articleApi from '../../services/articleService';
+import { useAppDispatch } from '../../hooks/redux';
+import { setUser } from '../../store/reducers/authSlice';
+
+export interface FormData {
+	email: string;
+	username: string;
+	password: string;
+	subPass: string;
+}
 
 function RegisterForm() {
+	const [check, setCheck] = useState(false);
 	const {
-		handleSubmit,
-		onSubmit,
 		register,
-		check,
-		errors,
-		onChange,
-		passwordWatch,
-	} = useRegister();
+		handleSubmit,
+		formState: { errors },
+		watch,
+	} = useForm<FormData>({ mode: 'onChange' });
+
+	const [regUser, { data, isSuccess, error }] = articleApi.useRegUserMutation();
+
+	const dispatch = useAppDispatch();
+	const navigate = useNavigate();
+
+	const onChange = (e: CheckboxChangeEvent) => {
+		setCheck(e.target.checked);
+	};
+	const onSubmit = async ({ password, email, username }: FormData) => {
+		await regUser({ password, email, username });
+	};
+
+	useEffect(() => {
+		if (data && isSuccess) {
+			dispatch(
+				setUser({
+					token: data.user.token,
+					email: data.user.email,
+					username: data.user.username,
+					image: null,
+				})
+			);
+			navigate('/');
+		}
+	}, [data, dispatch, isSuccess, navigate]);
+
 	return (
 		<form className={classes.main} onSubmit={handleSubmit(onSubmit)}>
 			<div className={classes.container}>
 				<div className={classes.title}>Create new account</div>
-				<div className={classes.form}>
-					<Input
-						{...register('username', {
-							required: 'Обязательное поле!',
-							maxLength: {
-								value: 20,
-								message: '20 будет достаточно ;)',
-							},
-						})}
-						placeholder="Username"
-						title="Username"
-						error={errors.username && errors.username.message}
-					/>
-					<Input
-						{...register('email', {
-							required: 'Обязательное поле!',
-							pattern: {
-								value: /^[a-z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/,
-								message: 'Введите корректный Email',
-							},
-						})}
-						placeholder="Email address"
-						title="Email address"
-						error={errors.email && errors.email.message}
-					/>
-					<Input
-						type="password"
-						{...register('password', {
-							required: 'Обязательное поле!',
-							minLength: {
-								value: 6,
-								message: 'Your password needs to be at least 6 characters.',
-							},
-						})}
-						placeholder="Password"
-						title="Password"
-						error={errors.password && errors.password.message}
-					/>
-					<Input
-						type="password"
-						{...register('subPass', {
-							required: 'Обязательное поле!',
-							validate: (value) =>
-								value === passwordWatch || 'Passwords must match',
-						})}
-						placeholder="Repeat Password"
-						title="Repeat Password"
-						error={errors.subPass && errors.subPass.message}
-					/>
-				</div>
+				<Inputs
+					register={register}
+					errors={errors}
+					error={error}
+					watch={watch}
+				/>
 				<Checkbox className={classes.check} onChange={onChange}>
 					I agree to the processing of my personal information
 				</Checkbox>

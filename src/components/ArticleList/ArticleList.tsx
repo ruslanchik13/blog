@@ -2,17 +2,22 @@ import { useState } from 'react';
 import { Pagination } from 'antd';
 import articleApi from '../../services/articleService';
 import ArticleCard from '../ArticleCard/ArticleCard';
+import { useAppSelector } from '../../hooks/redux';
 import classes from './ArticleList.module.scss';
+import { authSelector } from '../../store/reducers/authSlice';
 
 function ArticleList() {
 	const [currOffset, setCurrOffset] = useState(0);
-	const { data } = articleApi.useGetArticlesQuery({
+	const { token } = useAppSelector(authSelector);
+	const { data, isLoading } = articleApi.useGetArticlesQuery({
 		limit: 5,
 		offset: currOffset,
+		token: token || '',
 	});
 
 	return (
 		<div className={classes.main}>
+			{isLoading && <div className={classes.loading}>Loading...</div>}
 			{data &&
 				data.articles.map((item) => (
 					<ArticleCard
@@ -24,6 +29,7 @@ function ArticleList() {
 						favoritesCount={item.favoritesCount}
 						author={item.author}
 						slug={item.slug}
+						favorited={item.favorited}
 					/>
 				))}
 			<Pagination

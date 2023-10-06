@@ -1,70 +1,74 @@
 import { Button } from 'antd';
+import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import classes from './ProfileForm.module.scss';
-import Input from '../../shared/Input/Input';
-import useProfile from '../../hooks/useProfile';
+import Inputs from './components/Inputs/Inputs';
+import { useAppDispatch, useAppSelector } from '../../hooks/redux';
+import { authSelector, setUser } from '../../store/reducers/authSlice';
+import articleApi from '../../services/articleService';
+import { IAuth } from '../../types/IAuth';
 
 function ProfileForm() {
-	const { handleSubmit, onSubmit, register, errors, setText, urlRegex, text } =
-		useProfile();
+	const { token, email, username, image } = useAppSelector(authSelector);
+	const dispatch = useAppDispatch();
+	const navigate = useNavigate();
+	const [updateUser, { isError, isSuccess }] =
+		articleApi.useUpdateUserMutation();
+	const [text, setText] = useState<IAuth>({
+		username: username || '',
+		email: email || '',
+		url: image || '',
+	});
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+	} = useForm<IAuth>({ mode: 'onChange' });
+
+	const onSubmit = async ({ password, url, username, email }: IAuth) => {
+		if (password && token)
+			await updateUser({
+				user: { username: username || '', email, password, image: url || '' },
+				token,
+			});
+		if (!password && token)
+			await updateUser({
+				user: { username: username || '', email, image: url || '' },
+				token,
+			});
+	};
+
+	useEffect(() => {
+		if (isSuccess) {
+			alert('Изменения прошли успешно');
+			localStorage.clear();
+			dispatch(
+				setUser({
+					token,
+					email: text.email,
+					username: text.username,
+					image: text.url,
+				})
+			);
+			navigate('/');
+		}
+		if (isError)
+			alert(
+				'Красивое красное сообщение было бы круче, но такой юзер или мейл уже существуют'
+			);
+	}, [isSuccess, isError]);
 
 	return (
 		<form className={classes.main} onSubmit={handleSubmit(onSubmit)}>
 			<div className={classes.container}>
 				<div className={classes.title}>Edit Profile</div>
-				<div className={classes.form}>
-					<Input
-						{...register('username', {
-							required: 'Обязательное поле!',
-							maxLength: {
-								value: 20,
-								message: '20 будет достаточно ;)',
-							},
-						})}
-						value={text.username ? text.username : ''}
-						onChange={(e) => setText({ ...text, username: e.target.value })}
-						title="Username"
-						placeholder="Username"
-						error={errors.username && errors.username.message}
-					/>
-					<Input
-						{...register('email', {
-							required: 'Обязательное поле!',
-							pattern: {
-								value: /^[a-z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/,
-								message: 'Введите корректный Email',
-							},
-						})}
-						value={text.email ? text.email : ''}
-						onChange={(e) => setText({ ...text, email: e.target.value })}
-						title="Email address"
-						placeholder="Email address"
-						error={errors.email && errors.email.message}
-					/>
-					<Input
-						{...register('password', {
-							minLength: {
-								value: 6,
-								message: 'Your password needs to be at least 6 characters.',
-							},
-						})}
-						title="New password"
-						placeholder="New password"
-						error={errors.password && errors.password.message}
-					/>
-					<Input
-						{...register('url', {
-							pattern: {
-								value: urlRegex,
-								message: 'Введите корректный url',
-							},
-						})}
-						value={text.url ? text.url : ''}
-						onChange={(e) => setText({ ...text, url: e.target.value })}
-						title="Avatar image (url)"
-						placeholder="Avatar image"
-						error={errors.url && errors.url.message}
-					/>
-				</div>
+				<Inputs
+					register={register}
+					errors={errors}
+					text={text}
+					setText={setText}
+				/>
 				<Button type="primary" className={classes.button}>
 					<input className={classes.submit} type="submit" value="Save" />
 				</Button>

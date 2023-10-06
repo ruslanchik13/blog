@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { IArticle } from '../types/article';
+import { IArticle } from '../types/IArticle';
+import { IBaseRequest } from '../types/IBaseRequest';
 
 interface IArticles {
 	articles: IArticle[];
@@ -11,23 +12,40 @@ const articleApi = createApi({
 	baseQuery: fetchBaseQuery({ baseUrl: 'https://blog.kata.academy/api' }),
 	tagTypes: ['Post'],
 	endpoints: (build) => ({
-		getArticles: build.query<IArticles, { limit: number; offset: number }>({
-			query: ({ limit, offset }) => ({
-				url: '/articles',
-				params: {
-					limit,
-					offset,
-				},
-			}),
+		getArticles: build.query<
+			IArticles,
+			{ limit: number; offset: number; token: string }
+		>({
+			query: ({ limit, offset, token }) => {
+				const headers: Headers = new Headers();
+				headers.set('Content-Type', 'application/json');
+				if (token) headers.set('Authorization', `Token ${token}`);
+
+				return {
+					url: '/articles',
+					params: {
+						limit,
+						offset,
+					},
+					headers,
+				};
+			},
 			providesTags: ['Post'],
 		}),
-		getArticle: build.query<{ article: IArticle }, string>({
-			query: (slug) => ({
-				url: `/articles/${slug}`,
-			}),
+		getArticle: build.query<{ article: IArticle }, IBaseRequest>({
+			query: ({ slug, token }) => {
+				const headers: Headers = new Headers();
+				headers.set('Content-Type', 'application/json');
+				if (token) headers.set('Authorization', `Token ${token}`);
+
+				return {
+					url: `/articles/${slug}`,
+					headers,
+				};
+			},
 			providesTags: ['Post'],
 		}),
-		deleteArticle: build.mutation<{}, { slug: string; token: string }>({
+		deleteArticle: build.mutation<{}, IBaseRequest>({
 			query: ({ slug, token }) => ({
 				method: 'DELETE',
 				url: `/articles/${slug}`,
@@ -105,7 +123,7 @@ const articleApi = createApi({
 			}),
 			invalidatesTags: ['Post'],
 		}),
-		favourArticle: build.mutation<{}, { token: string; slug: string }>({
+		favourArticle: build.mutation<{}, IBaseRequest>({
 			query: ({ slug, token }) => ({
 				method: 'POST',
 				url: `/articles/${slug}/favorite`,
@@ -116,7 +134,7 @@ const articleApi = createApi({
 			}),
 			invalidatesTags: ['Post'],
 		}),
-		unFavourArticle: build.mutation<{}, { token: string; slug: string }>({
+		unFavourArticle: build.mutation<{}, IBaseRequest>({
 			query: ({ slug, token }) => ({
 				method: 'DELETE',
 				url: `/articles/${slug}/favorite`,
@@ -169,7 +187,7 @@ const articleApi = createApi({
 					article: {
 						title,
 						description,
-						tags,
+						tagList: tags,
 						body,
 					},
 				},

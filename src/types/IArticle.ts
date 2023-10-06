@@ -1,14 +1,14 @@
-import { IAuthor } from './author';
+import { IAuthor } from './IAuthor';
 
 export interface IArticle {
-	slug?: string;
+	slug: string;
 	title: string;
 	description: string;
 	body?: string;
 	tagList: string[];
 	createdAt: string;
 	updatedAt?: string;
-	favorited?: boolean;
+	favorited: boolean;
 	favoritesCount: number;
 	author: IAuthor;
 }

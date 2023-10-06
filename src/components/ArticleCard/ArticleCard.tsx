@@ -1,11 +1,9 @@
 import moment from 'moment';
 import { Link } from 'react-router-dom';
-import React from 'react';
 import classes from './ArticleCard.module.scss';
-import { IArticle } from '../../types/article';
-import img from '../../assets/favourite.svg';
-import articleApi from '../../services/articleService';
-import { useAppSelector } from '../../hooks/redux';
+import { IArticle } from '../../types/IArticle';
+import Likes from '../../shared/Likes/Likes';
+import Tags from '../../shared/Tags/Tags';
 
 function ArticleCard({
 	title,
@@ -15,14 +13,8 @@ function ArticleCard({
 	createdAt,
 	author,
 	slug,
+	favorited,
 }: IArticle) {
-	const [favourArticle] = articleApi.useFavourArticleMutation();
-	const { token } = useAppSelector((state) => state.auth);
-	const favouriteHandler = (e: React.KeyboardEvent<HTMLButtonElement>) => {
-		e.preventDefault();
-		if (slug && token) favourArticle({ slug, token });
-	};
-
 	return (
 		<Link to={`/articles/${slug}`}>
 			<div className={classes.main}>
@@ -31,24 +23,13 @@ function ArticleCard({
 						<div className={classes.left}>
 							<div className={classes.top}>
 								<div className={classes.title}>{title.slice(0, 50)}</div>
-								<div className={classes.likes}>
-									<button type="button" onKeyDown={(e) => favouriteHandler(e)}>
-										<img src={img} alt="item" />
-									</button>
-									{favoritesCount}
-								</div>
+								<Likes
+									slug={slug}
+									favorited={favorited}
+									favoritesCount={favoritesCount}
+								/>
 							</div>
-							<div className={classes.tags}>
-								{tagList &&
-									tagList.map(
-										(item, index) =>
-											index < 5 && (
-												<div key={Math.random()} className={classes.tag}>
-													{item}
-												</div>
-											)
-									)}
-							</div>
+							<Tags tagList={tagList} />
 						</div>
 						<div className={classes.right}>
 							<div>

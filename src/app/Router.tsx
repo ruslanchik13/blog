@@ -2,14 +2,14 @@ import { useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import ArticlePage from '../pages/ArticlePage/ArticlePage';
 import MainPage from '../pages/MainPage/MainPage';
-import { useAppDispatch, useAppSelector } from '../hooks/redux';
-import { setUser } from '../store/reducers/authSlice';
 import AuthPage from '../pages/AuthPage/AuthPage';
 import RegisterPage from '../pages/RegisterPage/RegisterPage';
 import CreatePage from '../pages/CreatePage/CreatePage';
 import PrivateRouter from './privateRouter';
 import ProfilePage from '../pages/ProfilePage/ProfilePage';
 import EditPage from '../pages/EditPage/EditPage';
+import { useAppDispatch, useAppSelector } from '../hooks/redux';
+import { setUser } from '../store/reducers/authSlice';
 
 function Router() {
 	const dispatch = useAppDispatch();

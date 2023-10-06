@@ -1,0 +1,16 @@
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.tag {
+  display: flex;
+  gap: 17px;
+  height: 40px;
+}
+
+.btn {
+  width: 120px;
+  height: 100%;
+}

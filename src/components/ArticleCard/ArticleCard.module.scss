@@ -24,19 +24,7 @@
   gap: 4px;
 }
 
-.tags {
-  display: flex;
-  gap: 8px;
-}
 
-.tag {
-  padding: 2px 5px;
-  font-family: Inter,sans-serif;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 15px;
-  border: 1px solid black;
-}
 
 .top {
   display: flex;
@@ -90,8 +78,3 @@
   word-break: break-word;
 }
 
-.likes {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}

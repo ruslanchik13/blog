@@ -1,47 +1,55 @@
 import { Button } from 'antd';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { useEffect } from 'react';
 import classes from './AuthForm.module.scss';
-import Input from '../../shared/Input/Input';
-import useAuth from '../../hooks/useAuth';
+import Inputs from './components/Inputs/Inputs';
+import { IFormData } from '../../types/IFormData';
+import { useAppDispatch } from '../../hooks/redux';
+import articleApi from '../../services/articleService';
+import { setUser } from '../../store/reducers/authSlice';
 
 function AuthForm() {
-	const { register, handleSubmit, errors, onSubmit } = useAuth();
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+	} = useForm<IFormData>({ mode: 'onChange' });
+	const dispatch = useAppDispatch();
+	const navigate = useNavigate();
+	const [authUser, { data, isSuccess, isError }] =
+		articleApi.useAuthUserMutation();
+
+	useEffect(() => {
+		if (data && isSuccess) {
+			dispatch(
+				setUser({
+					username: data.user.username,
+					token: data.user.token,
+					email: data.user.email,
+					image: data.user.image,
+				})
+			);
+			navigate('/');
+		}
+	}, [data, dispatch, isSuccess, navigate]);
+
+	const onSubmit = async ({ password, email }: IFormData) => {
+		await authUser({ user: { email, password } });
+	};
 
 	return (
 		<form className={classes.main} onSubmit={handleSubmit(onSubmit)}>
 			<div className={classes.container}>
 				<div className={classes.title}>Sign In</div>
-				<div className={classes.form}>
-					<Input
-						{...register('email', {
-							required: 'Обязательное поле!',
-							pattern: {
-								value: /^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$/,
-								message: 'Введите корректный Email',
-							},
-						})}
-						placeholder="Email address"
-						title="Email address"
-						error={errors.email && errors.email.message}
-					/>
-					<Input
-						type="password"
-						{...register('password', {
-							required: 'Обязательное поле!',
-							minLength: {
-								value: 6,
-								message: 'Your password needs to be at least 6 characters.',
-							},
-						})}
-						placeholder="Password"
-						title="Password"
-						error={errors.password && errors.password.message}
-					/>
-				</div>
+				<Inputs register={register} errors={errors} />
 				<div className={classes.bottom}>
 					<Button className={classes.btn} type="primary">
 						<input className={classes.btn} type="submit" value="Login" />
 					</Button>
+					{isError && (
+						<div className={classes.error}>Невалид мейл или пароль</div>
+					)}
 					<div className={classes.text}>
 						Don’t have an account?
 						<Link className={classes.link} to="/sign-up">

@@ -1,95 +1,91 @@
 import { Button } from 'antd';
-import { ChangeEvent } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import classes from './EditForm.module.scss';
-import Input from '../../shared/Input/Input';
-import useEdit from '../../hooks/useEdit';
+import TagsList from './components/TagsList/TagsList';
+import Inputs from './components/Inputs/Inputs';
+import { useAppSelector } from '../../hooks/redux';
+import { authSelector } from '../../store/reducers/authSlice';
+import articleApi from '../../services/articleService';
+import { ICard } from '../../types/ICard';
+import { IText } from '../../types/IText';
 
 function EditForm() {
+	const { slug } = useParams();
+	const navigate = useNavigate();
+	const { token } = useAppSelector(authSelector);
+	const { data } = articleApi.useGetArticleQuery({
+		slug: slug || '',
+		token: token || '',
+	});
+
+	const [text, setText] = useState<ICard>({
+		title: data ? data.article.title : '',
+		description: data ? data.article.description : '',
+		body: (data && data.article.body) || '',
+	});
+
+	const [tags, setTags] = useState<string[]>(data ? data.article.tagList : []);
+	const [updateArticle, { isError, isSuccess }] =
+		articleApi.useUpdateArticleMutation();
+
 	const {
-		errors,
-		setText,
-		text,
-		addTag,
-		handleSubmit,
-		onSubmit,
 		register,
-		deleteHandler,
-		changeHandler,
-		tags,
-	} = useEdit();
+		handleSubmit,
+		formState: { errors },
+	} = useForm<ICard>({ mode: 'onChange' });
+
+	useEffect(() => {
+		if (isSuccess) {
+			alert('Вы успешно изменили статью');
+			navigate('/');
+		}
+	}, [isError, isSuccess]);
+
+	const deleteHandler = (index: number) => {
+		const arr = tags.filter((item, indexItem) => index !== indexItem);
+		setTags(arr);
+	};
+
+	const addTag = () => setTags([...tags, '']);
+
+	const changeHandler = (value: string, index: number) => {
+		const updatedTags = tags.map((itemArr, itemIndex) =>
+			index === itemIndex ? value : itemArr
+		);
+		setTags(updatedTags);
+	};
+
+	const onSubmit = async ({ body, title, description }: IText) => {
+		await updateArticle({
+			slug: slug || '',
+			token: token || '',
+			body,
+			title,
+			description,
+			tags,
+		});
+	};
+
+	const memoizedTags = useMemo(() => tags, [tags]);
+
 	return (
 		<form className={classes.main} onSubmit={handleSubmit(onSubmit)}>
 			<div className={classes.container}>
 				<div className={classes.title}>Edit article</div>
-				<Input
-					{...register('title', {
-						required: 'Обязательное поле!',
-					})}
-					placeholder="Title"
-					title="Title"
-					error={errors.title && errors.title.message}
-					value={text.title}
-					onChange={(e) => setText({ ...text, title: e.target.value })}
+				<Inputs
+					register={register}
+					errors={errors}
+					text={text}
+					setText={setText}
 				/>
-				<Input
-					{...register('description', {
-						required: 'Обязательное поле!',
-					})}
-					placeholder="Title"
-					title="Short description"
-					error={errors.description && errors.description.message}
-					value={text.description}
-					onChange={(e) => setText({ ...text, description: e.target.value })}
+				<TagsList
+					tags={memoizedTags}
+					addTag={addTag}
+					changeHandler={changeHandler}
+					deleteHandler={deleteHandler}
 				/>
-				<div>
-					<div className={classes.text}>Text</div>
-					<textarea
-						{...register('body', {
-							required: 'Обязательное поле!',
-						})}
-						className={classes.textarea}
-						rows={5}
-						placeholder="Text"
-						value={text.body}
-						onChange={(e) => setText({ ...text, body: e.target.value })}
-					/>
-					{errors.body && (
-						<div className={classes.error}>{errors.body.message}</div>
-					)}
-				</div>
-				<div>
-					<div className={classes.text}>Tags</div>
-					<div className={classes.items}>
-						{tags.map((item, index) => (
-							<div className={classes.tag} key={Math.random()}>
-								<Input
-									value={item}
-									placeholder="Tag"
-									onChange={(e: ChangeEvent<HTMLInputElement>) =>
-										changeHandler(e, index)
-									}
-								/>
-								<Button
-									onClick={() => deleteHandler(index)}
-									className={classes.btn}
-									danger
-								>
-									Delete
-								</Button>
-								{tags.length - 1 === index && (
-									<Button className={classes.btn} onClick={() => addTag()}>
-										Add tag
-									</Button>
-								)}
-							</div>
-						))}
-						{tags.length === 0 && (
-							<Button className={classes.btn} onClick={() => addTag()}>
-								Add tag
-							</Button>
-						)}
-					</div>
-				</div>
 				<Button className={classes.bottom} type="primary">
 					<input className={classes.submit} type="submit" value="Send" />
 				</Button>

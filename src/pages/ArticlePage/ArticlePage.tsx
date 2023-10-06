@@ -1,43 +1,23 @@
-import { useEffect, useState } from 'react';
 import moment from 'moment/moment';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Button, Popconfirm } from 'antd';
-import classes from './ArticlePage.module.scss';
-import articleApi from '../../services/articleService';
+import ReactMarkdown from 'react-markdown';
+import { useParams } from 'react-router-dom';
 import Header from '../../components/Header/Header';
+import Likes from '../../shared/Likes/Likes';
+import classes from './ArticlePage.module.scss';
+import Tags from '../../shared/Tags/Tags';
+import Form from './components/Form/Form';
+import articleApi from '../../services/articleService';
+import { useAppSelector } from '../../hooks/redux';
+import { authSelector } from '../../store/reducers/authSlice';
 
 function ArticlePage() {
+	// const { isLoading, data, slug } = useArticle();
+	const { token } = useAppSelector(authSelector);
 	const { slug } = useParams();
-	const navigate = useNavigate();
-	const [edit, setEdit] = useState(false);
-	const { data, isLoading } = articleApi.useGetArticleQuery(slug || '');
-	const [deleteArticle, { isError, isSuccess }] =
-		articleApi.useDeleteArticleMutation();
-	const userData = localStorage.getItem('user');
-
-	const confirm = async () => {
-		if (slug && userData)
-			await deleteArticle({ slug, token: JSON.parse(userData).token });
-	};
-
-	const handleClick = () => {
-		if (
-			data &&
-			userData &&
-			data.article.author.username === JSON.parse(userData).username
-		) {
-			return setEdit(true);
-		}
-		return alert('Нельзя редактировать чужое!');
-	};
-
-	useEffect(() => {
-		if (isSuccess) {
-			navigate('/');
-			alert('Статья была удалена');
-		}
-		if (isError) alert('Нельзя удалить чужое');
-	}, [isError, isSuccess, navigate]);
+	const { data, isLoading } = articleApi.useGetArticleQuery({
+		slug: slug || '',
+		token: token || '',
+	});
 
 	return (
 		<div className={classes.body}>
@@ -52,21 +32,13 @@ function ArticlePage() {
 									<div className={classes.title}>
 										{data.article.title.slice(0, 50)}
 									</div>
-									<div className={classes.likes}>
-										{data.article.favoritesCount}
-									</div>
+									<Likes
+										slug={slug || ''}
+										favorited={data.article.favorited}
+										favoritesCount={data.article.favoritesCount}
+									/>
 								</div>
-								<div className={classes.tags}>
-									{data.article.tagList &&
-										data.article.tagList.map(
-											(item, index) =>
-												index < 5 && (
-													<div key={Math.random()} className={classes.tag}>
-														{item}
-													</div>
-												)
-										)}
-								</div>
+								<Tags tagList={data.article.tagList} />
 							</div>
 							<div className={classes.right}>
 								<div>
@@ -86,26 +58,11 @@ function ArticlePage() {
 						</div>
 						<div className={classes.bot}>
 							<div className={classes.text}>{data.article.description}</div>
-							<div>
-								<Popconfirm
-									title="Delete the task"
-									description="Are you sure to delete this task?"
-									onConfirm={confirm}
-									okText="Yes"
-									cancelText="No"
-								>
-									<Button danger>Delete</Button>
-								</Popconfirm>
-								<Button onClick={() => handleClick()} className={classes.edit}>
-									{edit ? (
-										<Link to={`/articles/${slug}/edit`}>Edit</Link>
-									) : (
-										'Edit'
-									)}
-								</Button>
-							</div>
+							<Form data={data} slug={slug || ''} />
 						</div>
-						<div className={classes.body}>{data.article.body}</div>
+						<ReactMarkdown className={classes.body}>
+							{data.article.body}
+						</ReactMarkdown>
 					</div>
 				)}
 			</div>

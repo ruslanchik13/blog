@@ -1,85 +1,66 @@
 import { Button } from 'antd';
+import { ChangeEvent, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 import classes from './CreateForm.module.scss';
-import Input from '../../shared/Input/Input';
-import useCreate from '../../hooks/useCreate';
+import List from './components/List/List';
+import Inputs from './components/Inputs/Inputs';
+import { ICard } from '../../types/ICard';
+import articleApi from '../../services/articleService';
+import { useAppSelector } from '../../hooks/redux';
+import { authSelector } from '../../store/reducers/authSlice';
+import { IText } from '../../types/IText';
 
 function CreateForm() {
+	const [tags, setTags] = useState<{ tag: string; id: number }[]>([]);
 	const {
-		addTag,
-		errors,
-		handleSubmit,
-		onSubmit,
 		register,
-		deleteHandler,
-		changeHandler,
-		tags,
-	} = useCreate();
+		handleSubmit,
+		formState: { errors },
+	} = useForm<ICard>({ mode: 'onChange' });
+	const [addArticle] = articleApi.useAddArticleMutation();
+	const { token } = useAppSelector(authSelector);
+	const navigate = useNavigate();
+
+	const addTag = () => {
+		setTags([...tags, { tag: '', id: Math.random() }]);
+	};
+
+	const deleteHandler = (index: number) => {
+		const arr = tags.filter((item, indexItem) => index !== indexItem);
+		setTags(arr);
+	};
+
+	const changeHandler = (e: ChangeEvent<HTMLInputElement>, index: number) => {
+		const arr = tags.map((itemArr, itemIndex) => {
+			if (index === itemIndex) return { tag: e.target.value, id: itemArr.id };
+			return itemArr;
+		});
+		setTags(arr);
+	};
+	const onSubmit = async ({ body, title, description }: IText) => {
+		const arr = tags.map((item) => item.tag);
+		await addArticle({
+			title,
+			body,
+			description,
+			tags: arr,
+			token: token || '',
+		});
+		navigate('/');
+	};
 
 	return (
 		<form className={classes.main} onSubmit={handleSubmit(onSubmit)}>
 			<div className={classes.container}>
 				<div className={classes.title}>Create new article</div>
-				<Input
-					{...register('title', {
-						required: 'Обязательное поле!',
-					})}
-					placeholder="Title"
-					title="Title"
-					error={errors.title && errors.title.message}
+				<Inputs register={register} errors={errors} />
+				<List
+					tags={tags}
+					deleteHandler={deleteHandler}
+					changeHandler={changeHandler}
+					addTag={addTag}
 				/>
-				<Input
-					{...register('description', {
-						required: 'Обязательное поле!',
-					})}
-					placeholder="Title"
-					title="Short description"
-					error={errors.description && errors.description.message}
-				/>
-				<div>
-					<div className={classes.text}>Text</div>
-					<textarea
-						{...register('body', {
-							required: 'Обязательное поле!',
-						})}
-						className={classes.textarea}
-						rows={5}
-						placeholder="Text"
-					/>
-					{errors.body && (
-						<div className={classes.error}>{errors.body.message}</div>
-					)}
-				</div>
-				<div>
-					<div className={classes.text}>Tags</div>
-					<div className={classes.items}>
-						{tags.map((item, index) => (
-							<div className={classes.tag} key={item.id}>
-								<Input
-									value={item.tag}
-									placeholder="Tag"
-									onChange={(e) => changeHandler(e, index)}
-								/>
-								<Button
-									onClick={() => deleteHandler(index)}
-									className={classes.btn}
-									danger
-								>
-									Delete
-								</Button>
-								{tags.length - 1 === index && (
-									<Button className={classes.btn} onClick={() => addTag()}>
-										Add tag
-									</Button>
-								)}
-							</div>
-						))}
-						{tags.length === 0 && (
-							<Button className={classes.btn} onClick={() => addTag()}>
-								Add tag
-							</Button>
-						)}
-					</div>
-				</div>
 				<Button className={classes.bottom} type="primary">
 					<input className={classes.submit} type="submit" value="Send" />
 				</Button>
