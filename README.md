@@ -1,1 +1,1 @@
-https://blog-ct06eorju-ruslanchik13.vercel.app/
+https://blog-l9x4rsgoy-ruslanchik13.vercel.app/
