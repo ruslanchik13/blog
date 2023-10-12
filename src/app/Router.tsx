@@ -9,11 +9,11 @@ import PrivateRouter from './privateRouter';
 import ProfilePage from '../pages/ProfilePage/ProfilePage';
 import EditPage from '../pages/EditPage/EditPage';
 import { useAppDispatch, useAppSelector } from '../hooks/redux';
-import { setUser } from '../store/reducers/authSlice';
+import { authSelector, setUser } from '../store/reducers/authSlice';
 
 function Router() {
 	const dispatch = useAppDispatch();
-	const { token } = useAppSelector((state) => state.auth);
+	const { token } = useAppSelector(authSelector);
 	const user = JSON.parse(localStorage.getItem('user') || '{}');
 
 	useEffect(() => {
