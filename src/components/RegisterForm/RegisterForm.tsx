@@ -17,6 +17,7 @@ export interface FormData {
 }
 
 function RegisterForm() {
+	const [loading, setLoading] = useState(false);
 	const [check, setCheck] = useState(false);
 	const {
 		register,
@@ -25,7 +26,8 @@ function RegisterForm() {
 		watch,
 	} = useForm<FormData>({ mode: 'onChange' });
 
-	const [regUser, { data, isSuccess, error }] = articleApi.useRegUserMutation();
+	const [regUser, { data, isSuccess, error, isError }] =
+		articleApi.useRegUserMutation();
 
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
@@ -34,6 +36,7 @@ function RegisterForm() {
 		setCheck(e.target.checked);
 	};
 	const onSubmit = async ({ password, email, username }: FormData) => {
+		setLoading(true);
 		await regUser({ password, email, username });
 	};
 
@@ -48,8 +51,10 @@ function RegisterForm() {
 				})
 			);
 			navigate('/');
+		} else {
+			setLoading(false);
 		}
-	}, [data, dispatch, isSuccess, navigate]);
+	}, [data, dispatch, isSuccess, isError, navigate]);
 
 	return (
 		<form className={classes.main} onSubmit={handleSubmit(onSubmit)}>
@@ -65,7 +70,12 @@ function RegisterForm() {
 					I agree to the processing of my personal information
 				</Checkbox>
 				<div className={classes.bottom}>
-					<Button disabled={!check} className={classes.btn} type="primary">
+					<Button
+						loading={loading}
+						disabled={!check}
+						className={classes.btn}
+						type="primary"
+					>
 						<input className={classes.btn} type="submit" value="Create" />
 					</Button>
 					<div className={classes.text}>

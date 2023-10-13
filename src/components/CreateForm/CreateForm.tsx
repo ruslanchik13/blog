@@ -1,5 +1,5 @@
 import { Button } from 'antd';
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import classes from './CreateForm.module.scss';
@@ -12,13 +12,14 @@ import { authSelector } from '../../store/reducers/authSlice';
 import { IText } from '../../types/IText';
 
 function CreateForm() {
+	const [loading, setLoading] = useState(false);
 	const [tags, setTags] = useState<{ tag: string; id: number }[]>([]);
 	const {
 		register,
 		handleSubmit,
 		formState: { errors },
 	} = useForm<ICard>({ mode: 'onChange' });
-	const [addArticle] = articleApi.useAddArticleMutation();
+	const [addArticle, { data }] = articleApi.useAddArticleMutation();
 	const { token } = useAppSelector(authSelector);
 	const navigate = useNavigate();
 
@@ -39,6 +40,7 @@ function CreateForm() {
 		setTags(arr);
 	};
 	const onSubmit = async ({ body, title, description }: IText) => {
+		setLoading(true);
 		const arr = tags.map((item) => item.tag);
 		await addArticle({
 			title,
@@ -47,8 +49,11 @@ function CreateForm() {
 			tags: arr,
 			token: token || '',
 		});
-		navigate('/');
 	};
+
+	useEffect(() => {
+		if (data) navigate(`/articles/${data.article.slug}`);
+	}, [data]);
 
 	return (
 		<form className={classes.main} onSubmit={handleSubmit(onSubmit)}>
@@ -61,7 +66,7 @@ function CreateForm() {
 					changeHandler={changeHandler}
 					addTag={addTag}
 				/>
-				<Button className={classes.bottom} type="primary">
+				<Button loading={loading} className={classes.bottom} type="primary">
 					<input className={classes.submit} type="submit" value="Send" />
 				</Button>
 			</div>

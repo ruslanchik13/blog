@@ -12,7 +12,7 @@ import { authSelector } from '../../store/reducers/authSlice';
 
 function ArticlePage() {
 	// const { isLoading, data, slug } = useArticle();
-	const { token } = useAppSelector(authSelector);
+	const { token, username } = useAppSelector(authSelector);
 	const { slug } = useParams();
 	const { data, isLoading } = articleApi.useGetArticleQuery({
 		slug: slug || '',
@@ -58,7 +58,9 @@ function ArticlePage() {
 						</div>
 						<div className={classes.bot}>
 							<div className={classes.text}>{data.article.description}</div>
-							<Form data={data} slug={slug || ''} />
+							{data.article.author.username === username && (
+								<Form slug={slug || ''} />
+							)}
 						</div>
 						<ReactMarkdown className={classes.body}>
 							{data.article.body}

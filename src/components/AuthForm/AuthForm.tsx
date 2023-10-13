@@ -1,7 +1,7 @@
 import { Button } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import classes from './AuthForm.module.scss';
 import Inputs from './components/Inputs/Inputs';
 import { IFormData } from '../../types/IFormData';
@@ -10,6 +10,7 @@ import articleApi from '../../services/articleService';
 import { setUser } from '../../store/reducers/authSlice';
 
 function AuthForm() {
+	const [loading, setLoading] = useState(false);
 	const {
 		register,
 		handleSubmit,
@@ -31,10 +32,13 @@ function AuthForm() {
 				})
 			);
 			navigate('/');
+		} else {
+			setLoading(false);
 		}
-	}, [data, dispatch, isSuccess, navigate]);
+	}, [data, dispatch, isSuccess, isError, navigate]);
 
 	const onSubmit = async ({ password, email }: IFormData) => {
+		setLoading(true);
 		await authUser({ user: { email, password } });
 	};
 
@@ -44,7 +48,7 @@ function AuthForm() {
 				<div className={classes.title}>Sign In</div>
 				<Inputs register={register} errors={errors} />
 				<div className={classes.bottom}>
-					<Button className={classes.btn} type="primary">
+					<Button loading={loading} className={classes.btn} type="primary">
 						<input className={classes.btn} type="submit" value="Login" />
 					</Button>
 					{isError && (

@@ -1,6 +1,6 @@
 import { Button } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import classes from './EditForm.module.scss';
 import TagsList from './components/TagsList/TagsList';
@@ -12,6 +12,7 @@ import { ICard } from '../../types/ICard';
 import { IText } from '../../types/IText';
 
 function EditForm() {
+	const [loading, setLoading] = useState(false);
 	const { slug } = useParams();
 	const navigate = useNavigate();
 	const { token } = useAppSelector(authSelector);
@@ -39,7 +40,7 @@ function EditForm() {
 	useEffect(() => {
 		if (isSuccess) {
 			alert('Вы успешно изменили статью');
-			navigate('/');
+			navigate(`/articles/${slug}`);
 		}
 	}, [isError, isSuccess]);
 
@@ -58,6 +59,7 @@ function EditForm() {
 	};
 
 	const onSubmit = async ({ body, title, description }: IText) => {
+		setLoading(true);
 		await updateArticle({
 			slug: slug || '',
 			token: token || '',
@@ -67,8 +69,6 @@ function EditForm() {
 			tags,
 		});
 	};
-
-	const memoizedTags = useMemo(() => tags, [tags]);
 
 	return (
 		<form className={classes.main} onSubmit={handleSubmit(onSubmit)}>
@@ -81,12 +81,12 @@ function EditForm() {
 					setText={setText}
 				/>
 				<TagsList
-					tags={memoizedTags}
+					tags={tags}
 					addTag={addTag}
 					changeHandler={changeHandler}
 					deleteHandler={deleteHandler}
 				/>
-				<Button className={classes.bottom} type="primary">
+				<Button loading={loading} className={classes.bottom} type="primary">
 					<input className={classes.submit} type="submit" value="Send" />
 				</Button>
 			</div>

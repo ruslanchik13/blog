@@ -26,7 +26,9 @@ const Input = forwardRef<
 					ref={ref}
 					type={type}
 					placeholder={placeholder}
-					className={`${classes.input} ${className}`}
+					className={`${classes.input} ${className} ${
+						error && classes.errInput
+					}`}
 					{...rest}
 				/>
 				<div className={classes.error}>{error}</div>

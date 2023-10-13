@@ -3,9 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import classes from './Form.module.scss';
 import articleApi from '../../../../services/articleService';
-import { IArticle } from '../../../../types/IArticle';
 
-function Form({ data, slug }: { data: { article: IArticle }; slug: string }) {
+function Form({ slug }: { slug: string }) {
 	const navigate = useNavigate();
 	const [deleteArticle, { isError, isSuccess }] =
 		articleApi.useDeleteArticleMutation();
@@ -24,15 +23,6 @@ function Form({ data, slug }: { data: { article: IArticle }; slug: string }) {
 			await deleteArticle({ slug, token: JSON.parse(userData).token });
 	};
 
-	const handleClick = () => {
-		return (
-			data &&
-			userData &&
-			data.article.author.username !== JSON.parse(userData).username &&
-			alert('Нельзя редактировать чужое!')
-		);
-	};
-
 	return (
 		<div>
 			<Popconfirm
@@ -44,14 +34,8 @@ function Form({ data, slug }: { data: { article: IArticle }; slug: string }) {
 			>
 				<Button danger>Delete</Button>
 			</Popconfirm>
-			<Button onClick={() => handleClick()} className={classes.edit}>
-				{userData &&
-				data &&
-				data.article.author.username === JSON.parse(userData).username ? (
-					<Link to={`/articles/${slug}/edit`}>Edit</Link>
-				) : (
-					'Edit'
-				)}
+			<Button className={classes.edit}>
+				<Link to={`/articles/${slug}/edit`}>Edit</Link>
 			</Button>
 		</div>
 	);

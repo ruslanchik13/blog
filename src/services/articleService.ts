@@ -96,7 +96,7 @@ const articleApi = createApi({
 			}),
 		}),
 		addArticle: build.mutation<
-			{},
+			{ article: IArticle },
 			{
 				title: string;
 				body: string;
