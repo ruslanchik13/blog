@@ -1,5 +1,1 @@
-https://blog-l9x4rsgoy-ruslanchik13.vercel.app/
-
-возможно что то забыл сделать
-
-но вроде все сделал
+https://blog-k23iwtm93-ruslanchik13.vercel.app
